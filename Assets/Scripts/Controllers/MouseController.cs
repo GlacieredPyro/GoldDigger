@@ -10,6 +10,7 @@ public class MouseController : MonoBehaviour {
 	Vector3 dragStartPos, dragEndPos;
 	bool dragging = false;
 	string buildMode;
+	private BuildModeController buildModeController;
 
 	//FIXME DEBUG ONLY
 	public Text tileDisplay;
@@ -18,6 +19,7 @@ public class MouseController : MonoBehaviour {
 	void Start () {
 		ID = IDGenerator.CreateUniqueId (typeof(MouseController));
 		currentFramePosition = lastFramePosition = Vector3.zero;
+		buildModeController = FindObjectOfType<BuildModeController> ();
 	}
 
 	// Update is called once per frame
@@ -36,10 +38,6 @@ public class MouseController : MonoBehaviour {
 	void UpdateDragging() {
 		//Check that we are not over a UI element, if we are kick out
 		if (EventSystem.current.IsPointerOverGameObject ())
-			return;
-
-		//no valid build mode
-		if (buildMode == null)
 			return;
 
 		if (Input.GetMouseButtonDown (0)) {
@@ -82,50 +80,8 @@ public class MouseController : MonoBehaviour {
 				for (int y = start_y; y <= end_y; y++) {
 					//FIXME Temp testing code
 					Tile t = WorldController.Instance.World.GetTileAt (x, y);
-					if(buildMode == "Floor" && t != null)
-						t.UpdateTileType(TileType.Floor);
-					if (buildMode == "Wall" && t != null) {
-						//FixtureManager.Instance.PlaceFixture ("Wall", t);
-						Job j = new Job (t, 1f, (job) => {
-							FixtureManager.Instance.PlaceFixture ("Wall", job.Tile);
-						}, JobType.BUILD, "Wall");
-						JobManager.EnqueueJob (j);
-					}
-					if (buildMode == "Mine" && t != null) {
-						if (t.Material != null) {
-							Job j = new Job (t, 1, (job) => {
-								//if the character has no material on hand, create one for him.
-								if(job.Character.Material == null) {
-									//TODO:Max invetory size from somewhere?
-									Material mat = new Material(0, 1000, 1f);
-									job.Character.SetMaterial(mat);
-									Debug.Log("Adding new material object to player");
+					buildModeController.BuildAt (t);
 
-								} else if (job.Character.Material.IsFull()) {//if the character has no more room.
-									//end the job.
-									job.RequestJobStop();
-									Debug.Log("Char inv full");
-									return;
-								} else if(job.Tile.Material.IsEmpty()) {//theres nothing left to collect
-									//end the job
-									//TODO start another?
-									job.RequestJobStop();
-									Debug.Log("Material Empty");
-									return;
-								}
-
-								//Set the take amount based on something later
-								//So diggers can take more at a time.
-								//Maybe a character modifier.
-								int takenMaterial = job.Tile.Material.TakeMaterial(20, true);
-								Debug.LogFormat("Adding {0} material to char", takenMaterial);
-								//FIXME some material might go missing here
-								int addedMaterial = job.Character.Material.addMaterial(takenMaterial);
-
-							}, JobType.MINE, "Dirt", true);
-							JobManager.EnqueueJob (j);
-						}
-					}
 				}
 			}
 		}
@@ -142,8 +98,4 @@ public class MouseController : MonoBehaviour {
 		Camera.main.orthographicSize = Mathf.Clamp (Camera.main.orthographicSize, 3f, 25f);
 	}
 
-	public void SetBuildMode(string mode) {
-		buildMode = mode;
-		Debug.Log (ID + ":: BuildMode -> " + mode);
-	}
 }

@@ -43,6 +43,10 @@ public class FixtureManager {
 		return null;
 	}
 
+	public static bool IsValidPlacementFor(Tile tile, string fixtureType) {
+		return Instance.prototypes [fixtureType].IsValidPlacementTile (tile);
+	}
+
 	public void RegisterForAllFixtureEvents(string id, Action<FixtureEvent, Fixture> listener) {
 		if (listeners.ContainsKey (id)) {
 			Debug.Log (id + " is already registered for fixture events.");

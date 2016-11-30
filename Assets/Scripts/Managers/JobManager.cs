@@ -21,10 +21,14 @@ public class JobManager
 	}
 		
 	Dictionary<string, Queue<Job>> queues;
+	Dictionary<Tile, Job> pendingJobs;
 	Action<Job> OnJobQueued;
 
 	private JobManager() {
 		queues = new Dictionary<string, Queue<Job>> ();
+		//seems dodge having a second ref to each job.
+		//seems better than have tiles needing to know about pending jobs and all the job rules.
+		pendingJobs = new Dictionary<Tile, Job> ();
 	}
 
 	public static int AvailableJobCount(string jobType) {
@@ -44,7 +48,28 @@ public class JobManager
 		Instance.queues[job.JobType].Enqueue (job);
 		if (Instance.OnJobQueued != null) {
 			Instance.OnJobQueued (job);
+			Instance.AddPendingJob (job);
 		}
+	}
+
+	private void AddPendingJob(Job job) {
+		if (pendingJobs.ContainsKey (job.Tile)) {
+			Debug.LogError (ID + ":: Job already pending at specified tile");
+		}
+		pendingJobs.Add (job.Tile, job);
+		job.RegisterJobStopped (PendingJobStopped);
+	}
+
+	private void PendingJobStopped(Job job) {
+		if (pendingJobs.ContainsKey (job.Tile)) {
+			pendingJobs.Remove (job.Tile);
+		} else {
+			Debug.LogError (ID + ":: Couldn't find pending job to remove");
+		}
+	}
+
+	public static bool HasPendingJob(Tile tile) {
+		return Instance.pendingJobs.ContainsKey (tile);
 	}
 		
 	public static Job DequeueJob(string jobType) {
