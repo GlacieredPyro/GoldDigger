@@ -19,12 +19,18 @@ public class JobManager
 			_instance = value;
 		}
 	}
-
-	Queue<Job> jobQueue;
+		
+	Dictionary<string, Queue<Job>> queues;
 	Action<Job> OnJobQueued;
 
 	private JobManager() {
-		jobQueue = new Queue<Job> ();
+		queues = new Dictionary<string, Queue<Job>> ();
+	}
+
+	public static int AvailableJobCount(string jobType) {
+		if(Instance.queues.ContainsKey(jobType))
+			return Instance.queues[jobType].Count;
+		return 0;
 	}
 
 	public void RegisterOnJobQueued(Action<Job> listener) {
@@ -32,15 +38,18 @@ public class JobManager
 	}
 
 	public static void EnqueueJob(Job job) {
-		Instance.jobQueue.Enqueue (job);
+		if (Instance.queues.ContainsKey (job.JobType) == false) {
+			Instance.queues.Add(job.JobType, new Queue<Job>());
+		}
+		Instance.queues[job.JobType].Enqueue (job);
 		if (Instance.OnJobQueued != null) {
 			Instance.OnJobQueued (job);
 		}
 	}
 		
-	public static Job DequeueJob() {
-		if(Instance.jobQueue.Count > 0) 
-			return Instance.jobQueue.Dequeue ();
+	public static Job DequeueJob(string jobType) {
+		if(Instance.queues.ContainsKey(jobType) && Instance.queues[jobType].Count > 0) 
+			return Instance.queues[jobType].Dequeue ();
 		return null;
 	}
 }

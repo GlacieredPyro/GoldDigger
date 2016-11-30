@@ -51,6 +51,17 @@ public class CharacterManager {
 		}
 	}
 
+	public Job GetJobFor(Character c) {
+		if (JobManager.AvailableJobCount (JobType.BUILD) == 0) {
+			if (c.Material == null || c.Material.IsFull() == false) {
+				return JobManager.DequeueJob (JobType.MINE);
+			}
+		} else {
+			return JobManager.DequeueJob (JobType.BUILD);
+		}
+		return null;
+	}
+
 	private CharacterManager () {
 		
 	}

@@ -15,6 +15,9 @@ public class Tile {
 	public float MovementCost { get { 
 			if (TileType.Empty == this.TileType)
 				return 0;
+			if (Fixture != null) {
+				return Fixture.MovementCost;
+			}
 			return 1;
 		}
 	}

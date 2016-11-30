@@ -37,6 +37,38 @@ public class Material {
 		return false;
 	}
 
+	public bool IsFull() {
+		return currentAmount == maxAmount;
+	}
+
+	public bool IsEmpty() {
+		return currentAmount == 0;
+	}
+
+	/// <summary>
+	/// Takes an amount of material (modified by yield if specified).
+	/// </summary>
+	/// <returns>The material (modified by yield if specified).</returns>
+	/// <param name="amount">Amount the amount to take.</param>
+	/// <param name="modifyByYield">If set to <c>true</c> modify the result by yield.</param>
+	public int TakeMaterial(int amount, bool modifyByYield) {
+		int takeAmount = Mathf.Min(amount, currentAmount);
+		currentAmount -= takeAmount;
+
+		if (modifyByYield)
+			return Mathf.FloorToInt (takeAmount * yieldPerUnit);
+		else
+			return takeAmount;
+	}
+
+
+	public int addMaterial(int amount) {
+		int giveAmount = Mathf.Min (amount, maxAmount - currentAmount);
+		currentAmount += giveAmount;
+
+		return giveAmount;
+	}
+
 	public void PlaceAtTile(Tile tile) {
 		if (tile.PlaceMaterial (this)) {
 			this.Tile = tile;

@@ -31,6 +31,10 @@ public class World {
 		Debug.Log (ID + ":: World Created");
 	}
 
+	public void InvalidateTileGraph() {
+		TileGraph = null;
+	}
+
 	#region Public Functions
 	/// <summary>
 	/// Gets the tile at x and y.

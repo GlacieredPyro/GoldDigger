@@ -32,16 +32,23 @@ public class FixtureSpriteController : MonoBehaviour {
 	private GameObject CreateFixtureGameObject(Fixture fixture) {
 		GameObject go = new GameObject ();
 
+		go.name = fixture.FixtureType;
+
 		go.transform.position = new Vector2 (fixture.Tile.X, fixture.Tile.Y);
 		go.transform.SetParent (this.transform, true);
 
 		SpriteRenderer sr = go.AddComponent<SpriteRenderer> ();
-		sr.sprite = sprites [fixture.FixtureType];
+		sr.sprite = GetFixtureSprite(fixture.FixtureType);
 		sr.sortingLayerName = "Fixtures";
 
 		return go;
 	}
 
+	public Sprite GetFixtureSprite(string type) {
+		return sprites [type];
+	}
+
+	//World load from file?
 	private void InitFixtureSprites(World world) {
 		for (int x = 0; x < world.Width; x++) {
 			for (int y = 0; y < world.Height; y++) {

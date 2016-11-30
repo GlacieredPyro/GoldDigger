@@ -36,6 +36,8 @@ public class FixtureManager {
 			f.RegisterFixtureDestroyed (OnFixtureDestroyed);
 			f.PlaceAtTile (target);
 			fixtures.Add (f);
+			//We have to invalidate the tilegraph because this changes the walkability.
+			WorldController.Instance.World.InvalidateTileGraph();
 			return f;
 		}
 		return null;

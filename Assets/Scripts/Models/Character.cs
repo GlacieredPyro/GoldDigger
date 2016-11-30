@@ -40,6 +40,8 @@ public class Character {
 	float movementPercentage; //Between 0 and 1
 	float speed = 5f;
 
+	public Material Material { get; protected set; }
+
 	Action<Character> OnCharacterChanged;
 
 	Job currentJob;
@@ -67,6 +69,14 @@ public class Character {
 
 	public bool IsMoving() {
 		return path != null && CurrentTile != DestinationTile;
+	}
+
+	public void SetMaterial(Material m) {
+		if (this.Material == null) {
+			this.Material = m;
+		} else {
+			Debug.LogError ("Material already set for character");
+		}
 	}
 
 	private void UpdateMovement(float deltaTime) {
@@ -104,7 +114,7 @@ public class Character {
 		//Make sure the shit hasnt hit the fan
 		//This can happen if something was built while we were already moving.
 		if (nextTile.IsEnterable () == Enterability.NEVER) {
-			Debug.LogError ("TRYING TO ENTER UNWALKABLE TILE:: BOMBING");
+			Debug.LogError ("TRYING TO ENTER UNWALKABLE TILE:: [" + nextTile.X + ", " + nextTile.Y + "]");
 			nextTile = null;
 			path = null;
 			return;
@@ -140,11 +150,12 @@ public class Character {
 
 	void UpdateJob(float deltaTime) {
 		if (currentJob == null) {
-			currentJob = JobManager.DequeueJob ();
+			currentJob = CharacterManager.Instance.GetJobFor (this);
 
 			if (currentJob != null) {
 				DestinationTile = currentJob.Tile;
 				currentJob.RegisterJobComplete (OnJobComplete);
+				currentJob.SetOwner (this);
 				currentJob.RegisterJobStopped (OnJobStopped);
 			}
 		}
@@ -155,7 +166,9 @@ public class Character {
 	}
 
 	void OnJobComplete(Job job) {
-		currentJob = null;
+		if (job.JobRepeats == false) {
+			currentJob = null;
+		}
 	}
 
 	void OnJobStopped(Job job) {			
