@@ -30,8 +30,8 @@ public class FixtureManager {
 	List<Fixture> fixtures;
 
 	public Fixture PlaceFixture(string type, Tile target) {
-		Fixture f = CreateFixtureInstance(type);
-		if (f.IsValidPlacementTile (target)) {
+		if (IsValidPlacementFor(target, type)) {
+			Fixture f = CreateFixtureInstance(type);
 			f.RegisterFixtureCreated (OnFixtureCreated);
 			f.RegisterFixtureDestroyed (OnFixtureDestroyed);
 			f.PlaceAtTile (target);
@@ -42,7 +42,7 @@ public class FixtureManager {
 		}
 		return null;
 	}
-
+		
 	public static bool IsValidPlacementFor(Tile tile, string fixtureType) {
 		return Instance.prototypes [fixtureType].IsValidPlacementTile (tile);
 	}
@@ -87,6 +87,7 @@ public class FixtureManager {
 		}
 		prototypes = new Dictionary<string, Fixture> ();
 		prototypes.Add ("Wall", new Fixture ("Wall", 0f, true, true));
+		prototypes.Add ("HandSluiceA", new Fixture ("HandSluiceA", 0f, false, false, 1, 2));
 	}
 
 	#endregion

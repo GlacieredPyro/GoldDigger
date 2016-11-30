@@ -45,14 +45,17 @@ public class Tile {
 	}
 
 	public bool PlaceFixture(Fixture f) {
-		//TODO Check dimenstions vs neighbouring tiles etc
-
 		//Tile must be unused
 		if (this.Fixture != null || this.Material != null)
 			return false;
 
 		this.Fixture = f;
 		return true;
+	}
+
+	public void RemoveFixture(Fixture f) {
+		if(this.Fixture == f)
+			this.Fixture = null;
 	}
 
 	public bool PlaceMaterial(Material material) {
