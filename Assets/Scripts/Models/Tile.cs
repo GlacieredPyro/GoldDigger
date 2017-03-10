@@ -1,14 +1,24 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using System;
 
+public struct S_Tile {
+	public string ID;
+	public int X;
+	public int Y;
+	public int TileType;
+	public string WorldID;
+	public string MaterialID;
+	public string FixtureID;
+}
+
 //FIXME:: User string types instead
-public enum TileType {Empty, Floor, Bedrock};
+public enum TileType {Empty = 0, Floor = 1, Bedrock = 2};
 
 public enum Enterability{ YES, NEVER, SOON }
 
 public class Tile {
-
+	public string ID { get; protected set; }
 	public int X { get; protected set; }
 	public int Y { get; protected set; }
 	//TODO FIXME This should be loosely linked to tile type.
@@ -30,12 +40,13 @@ public class Tile {
 
 	Action<Tile, Tile> cbTileChanged;
 
-	public Tile(World world, int x, int y, TileType t,  Action<Tile, Tile> cbTileChanged) {
+	public Tile(World world, int x, int y, TileType t,  Action<Tile, Tile> cbTileChanged, string id = null) {
 		this.World = world;
 		this.X = x;
 		this.Y = y;
 		this.TileType = t;
 		this.cbTileChanged += cbTileChanged;
+		this.ID = id == null ? IDGenerator.CreateNew () : id;
 	}
 
 	public void UpdateTileType(TileType type) {
@@ -137,4 +148,47 @@ public class Tile {
 		return ns;
 	}
 	#endregion
+
+	// ////////////////// //
+	//		Save/Load     //
+	// ////////////////// //
+
+	public void Save() {
+		UpdateOrInsertTile ();
+	}
+
+	private void UpdateOrInsertTile() {
+		string sql = @"UPDATE Tile set X = {1}, Y = {2}, TileType = {3}, World_ID = '{4}', Material_ID = '{5}', Fixture_ID = '{6}' WHERE ID = '{0}';
+		INSERT INTO Tile (ID, X, Y, TileType, World_ID, Material_ID, Fixture_ID) 
+		SELECT '{0}', {1}, {2}, {3}, '{4}', '{5}', '{6}' 
+		WHERE (Select Changes() = 0); --This checks the update results
+ 		";
+		sql = string.Format (sql, ID, X, Y, (int) TileType, World.ID, 
+			Material == null ? "" : Material.ID,
+			Fixture == null ? "" : Fixture.ID
+		);
+
+		SaveManager.ExecuteNonQuery (sql);
+	}
+
+	public static List<S_Tile> LoadAllFromDB(string worldId) {
+		//Load from DB
+		string sqlQuery = "SELECT ID, X, Y, TileType, World_ID, Material_ID, Fixture_ID from Tile where World_ID = '" + worldId + "'";
+
+		List<S_Tile> results = new List<S_Tile> ();
+		SaveManager.ExecuteQuery (sqlQuery, (reader) => {
+			while (reader.Read ()) {
+				S_Tile t = new S_Tile();
+				t.ID = reader.GetString(0);
+				t.X = reader.GetInt32(1);
+				t.Y = reader.GetInt32(2);
+				t.TileType = reader.GetInt32(3);
+				t.WorldID = reader.GetString(4);
+				t.MaterialID = reader.GetString(5);
+				t.FixtureID = reader.GetString(6);
+				results.Add(t);
+			}
+		});
+		return results;
+	}
 }

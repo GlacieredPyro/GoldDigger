@@ -1,5 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.IO;
+using System.Text;
+
+using Mono.Data.Sqlite;
+using System.Data;
+using System;
 
 public class GameController : MonoBehaviour {
 
@@ -11,11 +18,28 @@ public class GameController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		//Data loads
+		SaveManager.OpenConnection();
+		S_World worldStruct = World.LoadFromDB("a063906a-8cd7-4b74-ae24-d9c6b6d548f1");
+		SaveManager.CloseConnection ();
+		//End Data Loads
+
 		//Managers get initialized first!
-		WorldController.Instance.Initialize ();
+		WorldController.Instance.Initialize (worldStruct.Width, worldStruct.Height, worldStruct.ID);
 		FixtureManager.Instance.InitializeFixtures ();
 		CharacterManager.Instance.InitializeCharacterManager ();
 		MaterialManager.Instance.InitializeMaterialManager ();
+
+		SaveManager.OpenConnection ();
+		Debug.Log ("Loading tiles");
+		List<S_Tile> tiles = Tile.LoadAllFromDB (worldStruct.ID);
+		Debug.Log ("Finished loading tiles");
+		SaveManager.CloseConnection ();
+		
+		Debug.Log ("Placing Tiles");
+		WorldController.Instance.World.InitializeTiles (tiles);
+		Debug.Log ("Done placing Tiles");
 
 		TileSpriteController = FindObjectOfType<TileSpriteController> ();
 		TileSpriteController.OnWorldInitialized (WorldController.Instance.World);
@@ -32,13 +56,6 @@ public class GameController : MonoBehaviour {
 		JobSpriteController = FindObjectOfType<JobSpriteController> ();
 		JobSpriteController.OnJobManagerInitialized ();
 
-		//Just for testing
-		for (int x = 0; x < 10; x++) {
-			for (int y = 0; y < 10; y++) {
-				WorldController.Instance.World.GetTileAt (x, y).UpdateTileType (TileType.Floor);
-			}
-		}
-
 		Character c = CharacterManager.Instance.CreateCharacter (WorldController.Instance.World.GetTileAt (0, 0));
 
 		Material m = new Material (100, 100, 0.5f);
@@ -50,37 +67,17 @@ public class GameController : MonoBehaviour {
 		m = new Material (100, 100, 0.5f);
 		MaterialManager.Instance.PlaceMaterial (WorldController.Instance.World.GetTileAt (4, 4), m);
 
-		Job j = new Job (WorldController.Instance.World.GetTileAt (3, 3), 1, (job) => {
-			//if the character has no material on hand, create one for him.
-			if(job.Character.Material == null) {
-				//TODO:Max invetory size from somewhere?
-				Material mat = new Material(0, 50, 1f);
-				job.Character.SetMaterial(mat);
-				Debug.Log("Adding new material object to player");
+		//Save ();
 
-			} else if (job.Character.Material.IsFull()) {//if the character has no more room.
-				//end the job.
-				job.RequestJobStop();
-				Debug.Log("Char inv full");
-				return;
-			} else if(job.Tile.Material.IsEmpty()) {//theres nothing left to collect
-				//end the job
-				//TODO start another?
-				job.RequestJobStop();
-				Debug.Log("Material Empty");
-				return;
-			}
+	}
 
-			//Set the take amount based on something later
-			//So diggers can take more at a time.
-			//Maybe a character modifier.
-			int takenMaterial = job.Tile.Material.TakeMaterial(20, true);
-			Debug.LogFormat("Adding {0} material to char", takenMaterial);
-			//FIXME some material might go missing here
-			int addedMaterial = job.Character.Material.addMaterial(takenMaterial);
+	private void Save() {
+		SaveManager.OpenConnection ();
+		//world first.
+		WorldController.Instance.World.Save();
+		
+		SaveManager.CloseConnection ();
 
-		}, "Collect", "Dirt", true);
-		//JobManager.EnqueueJob (JobType.MINE, j);
 	}
 	
 	// Update is called once per frame

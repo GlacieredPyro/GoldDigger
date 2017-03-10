@@ -19,11 +19,8 @@ public class WorldController : MonoBehaviour {
 	
 	}
 
-	public void Initialize () {
-		CreateEmptyWorld ();
+	public void Initialize (int width, int height, string id) {
+		World = new World (width, height, id);
 	}
 
-	private void CreateEmptyWorld() {
-		World = new World (50, 50);
-	}
 }

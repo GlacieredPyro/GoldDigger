@@ -31,6 +31,10 @@ public class TileManager {
 		return new Tile (world, x, y, t, OnAnyTileChanged);
 	}
 
+	public Tile CreateTile(World world, S_Tile tileStruct) {
+		return new Tile (world, tileStruct.X, tileStruct.Y, (TileType)tileStruct.TileType, OnAnyTileChanged, tileStruct.ID);
+	}
+
 	private void OnAnyTileChanged(Tile oldTile, Tile newTile) {
 		if (oldTile.TileType != newTile.TileType) {
 			foreach (string key in listeners.Keys) {

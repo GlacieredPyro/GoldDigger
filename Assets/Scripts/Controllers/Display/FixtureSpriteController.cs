@@ -17,7 +17,6 @@ public class FixtureSpriteController : MonoBehaviour {
 	public void OnWorldInitialized(World world) {
 		FixtureManager.Instance.RegisterForAllFixtureEvents (ID, OnFixtureEvent);
 		Debug.Log (ID + ":: Generating Fixture GO's");
-		InitFixtureSprites (world);
 	}
 		
 	public void OnFixtureEvent(FixtureEvent eventType, Fixture fixture) {
@@ -46,15 +45,6 @@ public class FixtureSpriteController : MonoBehaviour {
 
 	public Sprite GetFixtureSprite(string type) {
 		return sprites [type];
-	}
-
-	//World load from file?
-	private void InitFixtureSprites(World world) {
-		for (int x = 0; x < world.Width; x++) {
-			for (int y = 0; y < world.Height; y++) {
-				
-			}
-		}
 	}
 
 	private void PreLoadSprites() {

@@ -7,6 +7,7 @@ using System.Collections;
 /// </summary>
 public class Material {
 
+	public string ID { get; protected set; }
 	public Tile Tile { get; protected set; }
 	public Character Character { get; protected set; }
 
@@ -24,10 +25,11 @@ public class Material {
 
 	Action<Material> OnMaterialChanged;
 
-	public Material(int currentAmount, int maxAmount, float yieldPerUnit) {
+	public Material(int currentAmount, int maxAmount, float yieldPerUnit, string id = null) {
 		this.currentAmount = currentAmount;
 		this.maxAmount = maxAmount;
 		this.yieldPerUnit = yieldPerUnit;
+		this.ID = id == null ? IDGenerator.CreateNew () : id;
 	}
 
 	public Boolean IsValidPlacementTile(Tile tile) {

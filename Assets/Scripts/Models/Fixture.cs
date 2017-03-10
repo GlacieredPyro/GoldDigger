@@ -4,6 +4,7 @@ using System;
 
 public class Fixture {
 
+	public string ID { get; protected set; }
 	public Tile Tile { get; protected set; }
 	public string FixtureType  { get; protected set; }
 	/// <summary>
@@ -21,13 +22,14 @@ public class Fixture {
 	public int Width {get; protected set;}
 	public int Height {get; protected set;}
 
-	public Fixture(string type, float movementCost, bool isRoomEnclosure, bool linksToNeighbour, int width = 1, int height = 1) {
+	public Fixture(string type, float movementCost, bool isRoomEnclosure, bool linksToNeighbour, int width = 1, int height = 1, string id = null) {
 		FixtureType = type;
 		MovementCost = movementCost;
 		IsRoomEnclosure = isRoomEnclosure;
 		LinksToNeighbour = linksToNeighbour;
 		Width = width;
 		Height = height;
+		this.ID = id == null ? IDGenerator.CreateNew () : id;
 	}
 
 	public bool IsValidPlacementTile(Tile tile) {
